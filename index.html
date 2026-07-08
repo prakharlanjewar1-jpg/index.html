@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Wedding Ledger — Budget Calculator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper: #F5F1E6;
+    --paper-dim: #EDE7D6;
+    --ink: #241E29;
+    --ink-soft: #5C5566;
+    --plum: #4A1942;
+    --plum-deep: #341030;
+    --brass: #A9803F;
+    --brass-light: #D9BE86;
+    --line: #D8CFB8;
+    --good: #4F6B4A;
+    --over: #A23B2E;
+    --radius: 2px;
+  }
+ 
+  *{ box-sizing: border-box; }
+ 
+  body{
+    margin:0;
+    background: var(--paper-dim);
+    color: var(--ink);
+    font-family: 'Work Sans', sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+ 
+  ::selection{ background: var(--brass-light); }
+ 
+  h1,h2,h3, .display{
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+ 
+  .wrap{
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 48px 24px 96px;
+  }
+ 
+  /* ---------- Header ---------- */
+  header{
+    text-align: center;
+    margin-bottom: 56px;
+  }
+ 
+  .eyebrow{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--brass);
+    margin-bottom: 14px;
+  }
+ 
+  header h1{
+    font-size: clamp(36px, 6vw, 58px);
+    margin: 0 0 12px;
+    color: var(--plum-deep);
+    font-optical-sizing: auto;
+  }
+ 
+  header p{
+    max-width: 480px;
+    margin: 0 auto;
+    color: var(--ink-soft);
+    font-size: 15.5px;
+    line-height: 1.6;
+  }
+ 
+  /* ---------- Layout ---------- */
+  .grid{
+    display: grid;
+    grid-template-columns: 1.15fr 0.85fr;
+    gap: 40px;
+    align-items: start;
+  }
+ 
+  @media (max-width: 880px){
+    .grid{ grid-template-columns: 1fr; }
+  }
+ 
+  /* ---------- Form card ---------- */
+  .card{
+    background: var(--paper);
+    border: 1px solid var(--line);
+  }
+ 
+  .form-card{ padding: 8px 0 4px; }
+ 
+  .field-row{
+    display: grid;
+    grid-template-columns: 130px 1fr 100px;
+    align-items: center;
+    gap: 18px;
+    padding: 16px 28px;
+    border-bottom: 1px solid var(--line);
+  }
+ 
+  .field-row:last-child{ border-bottom: none; }
+ 
+  .field-row.guests{
+    background: var(--paper-dim);
+    border-bottom: 1px solid var(--line);
+  }
+ 
+  .field-label{
+    font-family: 'Fraunces', serif;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--ink);
+  }
+ 
+  .field-sub{
+    display:block;
+    font-family: 'Work Sans', sans-serif;
+    font-size: 11.5px;
+    color: var(--ink-soft);
+    margin-top: 2px;
+    font-weight: 400;
+  }
+ 
+  input[type="range"]{
+    -webkit-appearance: none;
+    width: 100%;
+    height: 2px;
+    background: var(--line);
+    outline: none;
+  }
+  input[type="range"]::-webkit-slider-thumb{
+    -webkit-appearance: none;
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    background: var(--plum);
+    border: 2px solid var(--paper);
+    box-shadow: 0 0 0 1px var(--plum);
+    cursor: pointer;
+    margin-top: -6.5px;
+  }
+  input[type="range"]::-moz-range-thumb{
+    width: 13px;
+    height: 13px;
+    border-radius: 50%;
+    background: var(--plum);
+    border: 2px solid var(--paper);
+    box-shadow: 0 0 0 1px var(--plum);
+    cursor: pointer;
+  }
+  input[type="range"]::-moz-range-track{
+    height: 2px;
+    background: var(--line);
+  }
+ 
+  .field-value{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 14px;
+    text-align: right;
+    color: var(--plum-deep);
+    font-weight: 500;
+    white-space: nowrap;
+  }
+ 
+  .num-input{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 14px;
+    text-align: right;
+    color: var(--plum-deep);
+    font-weight: 500;
+    border: 1px solid var(--line);
+    background: var(--paper);
+    padding: 6px 8px;
+    width: 100%;
+  }
+  .num-input:focus{ outline: 2px solid var(--brass); outline-offset: 1px; }
+ 
+  .currency-row{
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    padding: 14px 28px 18px;
+  }
+ 
+  select{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12.5px;
+    padding: 6px 10px;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    color: var(--ink);
+  }
+  select:focus{ outline: 2px solid var(--brass); outline-offset: 1px; }
+ 
+  /* ---------- Receipt (signature element) ---------- */
+  .receipt-shell{
+    position: sticky;
+    top: 24px;
+  }
+ 
+  .receipt{
+    background: #FFFDF7;
+    border: 1px solid var(--line);
+    box-shadow: 0 18px 40px -20px rgba(36,30,41,0.35);
+    padding: 30px 26px 0;
+    position: relative;
+  }
+ 
+  .receipt-head{
+    text-align: center;
+    border-bottom: 1px dashed var(--line);
+    padding-bottom: 16px;
+    margin-bottom: 8px;
+  }
+ 
+  .receipt-head .display{
+    font-size: 20px;
+    color: var(--plum-deep);
+    margin: 0 0 4px;
+  }
+ 
+  .receipt-head .sub{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+ 
+  .receipt-lines{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    padding: 6px 0 4px;
+  }
+ 
+  .r-line{
+    display: flex;
+    justify-content: space-between;
+    padding: 7px 0;
+    color: var(--ink);
+    opacity: 0;
+    transform: translateY(4px);
+    animation: rise 0.35s ease forwards;
+  }
+ 
+  @keyframes rise{
+    to{ opacity: 1; transform: translateY(0); }
+  }
+ 
+  .r-line .amt{ color: var(--ink-soft); }
+  .r-line.zero{ opacity: 0.35 !important; animation: none; }
+ 
+  .receipt-total{
+    border-top: 1px solid var(--ink);
+    margin-top: 6px;
+    padding: 16px 0 6px;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+ 
+  .receipt-total .t-label{
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+ 
+  .receipt-total .t-amt{
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--plum-deep);
+  }
+ 
+  .per-guest{
+    text-align: right;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11.5px;
+    color: var(--ink-soft);
+    padding-bottom: 18px;
+    border-bottom: 1px dashed var(--line);
+    margin-bottom: 16px;
+  }
+ 
+  .budget-compare{
+    padding-bottom: 20px;
+  }
+ 
+  .budget-compare .field-row{
+    padding: 0 0 14px;
+    grid-template-columns: 1fr 110px;
+    border: none;
+  }
+ 
+  .status-strip{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    text-align: center;
+    padding: 10px 0 20px;
+    letter-spacing: 0.03em;
+  }
+  .status-strip.good{ color: var(--good); }
+  .status-strip.over{ color: var(--over); }
+  .status-strip.neutral{ color: var(--ink-soft); }
+ 
+  .torn-edge{
+    height: 14px;
+    background:
+      linear-gradient(-45deg, #FFFDF7 8px, transparent 0),
+      linear-gradient(45deg, #FFFDF7 8px, transparent 0);
+    background-position: bottom left;
+    background-repeat: repeat-x;
+    background-size: 16px 16px;
+    margin-top: -1px;
+  }
+ 
+  .note{
+    font-family: 'Work Sans', sans-serif;
+    font-size: 12px;
+    color: var(--ink-soft);
+    text-align: center;
+    margin-top: 18px;
+    line-height: 1.6;
+  }
+ 
+  footer{
+    text-align: center;
+    margin-top: 64px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-soft);
+    letter-spacing: 0.05em;
+  }
+ 
+  @media (prefers-reduced-motion: reduce){
+    .r-line{ animation: none; opacity: 1; transform: none; }
+  }
+</style>
+</head>
+<body>
+ 
+<div class="wrap">
+ 
+  <header>
+    <div class="eyebrow">Line by line, not left to guesswork</div>
+    <h1>The Wedding Ledger</h1>
+    <p>Set your guest count and move each line to fit your plans. The receipt on the right totals itself as you go, so you always know where you stand.</p>
+  </header>
+ 
+  <div class="grid">
+ 
+    <!-- FORM -->
+    <div class="card form-card">
+ 
+      <div class="field-row guests">
+        <div class="field-label">Guests<span class="field-sub">headcount</span></div>
+        <input type="range" id="guests" min="50" max="2000" step="10" value="300">
+        <input type="text" class="num-input" id="guestsNum" value="300" inputmode="numeric">
+      </div>
+ 
+      <div class="field-row">
+        <div class="field-label">Venue &amp; mandap<span class="field-sub">hall, tent, decor structure</span></div>
+        <input type="range" id="venue" min="0" max="4000000" step="10000" value="900000">
+        <div class="field-value" id="venueVal">₹9,00,000</div>
+      </div>
+ 
+      <div class="field-row">
+        <div class="field-label">Catering<span class="field-sub">per plate, food &amp; drink</span></div>
+        <input type="range" id="catering" min="300" max="3000" step="50" value="1200">
+        <div class="field-value" id="cateringVal">₹1,200 / hd</div>
+      </div>
+ 
+      <div class="field-row">
+        <div class="field-label">Attire<span class="field-sub">outfits, alterations</span></div>
+        <input type="range" id="attire" min="0" max="1000000" step="5000" value="180000">
+        <div class="field-value" id="attireVal">₹1,80,000</div>
+      </div>
+ 
+      <div class="field-row">
+        <div class="field-label">Photo &amp; film<span class="field-sub">coverage, editing</span></div>
+        <input type="range" id="photo" min="0" max="800000" step="5000" value="150000">
+        <div class="field-value" id="photoVal">₹1,50,000</div>
+      </div>
+ 
+      <div class="field-row">
+        <div class="field-label">Flowers &amp; decor<span class="field-sub">florals, styling, lighting</span></div>
+        <input type="range" id="decor" min="0" max="1500000" step="5000" value="280000">
+        <div class="field-value" id="decorVal">₹2,80,000</div>
+      </div>
+ 
+      <div class="field-row">
+        <div class="field-label">Music &amp; DJ<span class="field-sub">band, DJ, sound</span></div>
+        <input type="range" id="music" min="0" max="500000" step="5000" value="90000">
+        <div class="field-value" id="musicVal">₹90,000</div>
+      </div>
+ 
+      <div class="field-row">
+        <div class="field-label">Stationery<span class="field-sub">invites, signage, favors</span></div>
+        <input type="range" id="stationery" min="0" max="150000" step="2000" value="35000">
+        <div class="field-value" id="stationeryVal">₹35,000</div>
+      </div>
+ 
+      <div class="field-row">
+        <div class="field-label">Rings<span class="field-sub">both bands</span></div>
+        <input type="range" id="rings" min="0" max="800000" step="5000" value="120000">
+        <div class="field-value" id="ringsVal">₹1,20,000</div>
+      </div>
+ 
+      <div class="field-row">
+        <div class="field-label">Contingency<span class="field-sub">buffer, % of subtotal</span></div>
+        <input type="range" id="buffer" min="0" max="20" step="1" value="8">
+        <div class="field-value" id="bufferVal">8%</div>
+      </div>
+ 
+      <div class="currency-row">
+        <select id="currency">
+          <option value="₹" selected>INR ₹</option>
+          <option value="$">USD $</option>
+          <option value="£">GBP £</option>
+          <option value="€">EUR €</option>
+        </select>
+      </div>
+ 
+    </div>
+ 
+    <!-- RECEIPT -->
+    <div class="receipt-shell">
+      <div class="receipt">
+        <div class="receipt-head">
+          <div class="display">Budget Summary</div>
+          <div class="sub" id="dateStamp">—</div>
+        </div>
+ 
+        <div class="receipt-lines" id="lines"></div>
+ 
+        <div class="receipt-total">
+          <span class="t-label">Total</span>
+          <span class="t-amt" id="grandTotal">$0</span>
+        </div>
+ 
+        <div class="per-guest" id="perGuest">— per guest</div>
+ 
+        <div class="budget-compare">
+          <div class="field-row">
+            <div class="field-label">Target budget<span class="field-sub">optional, for comparison</span></div>
+            <input type="text" class="num-input" id="targetBudget" placeholder="e.g. 2500000" inputmode="numeric">
+          </div>
+        </div>
+ 
+        <div class="status-strip neutral" id="statusStrip">Set a target above to compare</div>
+      </div>
+      <div class="torn-edge"></div>
+      <p class="note">Figures are planning estimates only — actual vendor quotes will vary by region and season.</p>
+    </div>
+ 
+  </div>
+ 
+  <footer>THE WEDDING LEDGER — A PLANNING TOOL</footer>
+ 
+</div>
+ 
+<script>
+  const ids = ['venue','catering','attire','photo','decor','music','stationery','rings'];
+  const labels = {
+    venue: 'Venue & hire',
+    catering: 'Catering',
+    attire: 'Attire',
+    photo: 'Photo & film',
+    decor: 'Flowers & decor',
+    music: 'Music',
+    stationery: 'Stationery',
+    rings: 'Rings'
+  };
+ 
+  const guestsSlider = document.getElementById('guests');
+  const guestsNum = document.getElementById('guestsNum');
+  const currencySel = document.getElementById('currency');
+  const bufferSlider = document.getElementById('buffer');
+  const bufferVal = document.getElementById('bufferVal');
+  const targetInput = document.getElementById('targetBudget');
+  const linesEl = document.getElementById('lines');
+  const grandTotalEl = document.getElementById('grandTotal');
+  const perGuestEl = document.getElementById('perGuest');
+  const statusStrip = document.getElementById('statusStrip');
+  const dateStamp = document.getElementById('dateStamp');
+ 
+  function fmt(n){
+    const cur = currencySel.value;
+    const locale = cur === '₹' ? 'en-IN' : 'en-US';
+    return cur + Math.round(n).toLocaleString(locale);
+  }
+ 
+  function syncGuests(fromSlider){
+    if(fromSlider){
+      guestsNum.value = guestsSlider.value;
+    } else {
+      let v = parseInt(guestsNum.value.replace(/[^0-9]/g,'')) || 0;
+      v = Math.max(10, Math.min(800, v));
+      guestsSlider.value = v;
+      guestsNum.value = v;
+    }
+  }
+ 
+  function updateAll(){
+    const guests = parseInt(guestsSlider.value);
+    let subtotal = 0;
+    let html = '';
+ 
+    ids.forEach(id => {
+      const el = document.getElementById(id);
+      const valEl = document.getElementById(id + 'Val');
+      let amount;
+      if(id === 'catering'){
+        amount = parseInt(el.value) * guests;
+        valEl.textContent = fmt(el.value) + ' / hd';
+      } else {
+        amount = parseInt(el.value);
+        valEl.textContent = fmt(amount);
+      }
+      subtotal += amount;
+      html += `<div class="r-line ${amount === 0 ? 'zero' : ''}"><span>${labels[id]}</span><span class="amt">${fmt(amount)}</span></div>`;
+    });
+ 
+    const bufferPct = parseInt(bufferSlider.value);
+    bufferVal.textContent = bufferPct + '%';
+    const bufferAmt = subtotal * (bufferPct / 100);
+    html += `<div class="r-line"><span>Contingency (${bufferPct}%)</span><span class="amt">${fmt(bufferAmt)}</span></div>`;
+ 
+    linesEl.innerHTML = html;
+ 
+    const total = subtotal + bufferAmt;
+    grandTotalEl.textContent = fmt(total);
+    perGuestEl.textContent = fmt(total / guests) + ' per guest';
+ 
+    const targetRaw = targetInput.value.replace(/[^0-9]/g,'');
+    if(targetRaw){
+      const target = parseInt(targetRaw);
+      const diff = target - total;
+      if(diff >= 0){
+        statusStrip.className = 'status-strip good';
+        statusStrip.textContent = `${fmt(diff)} under target`;
+      } else {
+        statusStrip.className = 'status-strip over';
+        statusStrip.textContent = `${fmt(Math.abs(diff))} over target`;
+      }
+    } else {
+      statusStrip.className = 'status-strip neutral';
+      statusStrip.textContent = 'Set a target above to compare';
+    }
+  }
+ 
+  ids.forEach(id => {
+    document.getElementById(id).addEventListener('input', updateAll);
+  });
+  guestsSlider.addEventListener('input', () => { syncGuests(true); updateAll(); });
+  guestsNum.addEventListener('change', () => { syncGuests(false); updateAll(); });
+  bufferSlider.addEventListener('input', updateAll);
+  currencySel.addEventListener('change', updateAll);
+  targetInput.addEventListener('input', updateAll);
+ 
+  const today = new Date();
+  dateStamp.textContent = today.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }).toUpperCase();
+ 
+  updateAll();
+</script>
+ 
+</body>
+</html>
